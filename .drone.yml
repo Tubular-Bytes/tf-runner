@@ -34,7 +34,7 @@ steps:
         from_secret: registry_username
       password:
         from_secret: registry_password
-      repo: registry.0x42.in/terrence/statesman
+      repo: registry.0x42.in/terrence/runner
       tags: 
         - latest
         - ${DRONE_TAG}
@@ -46,6 +46,6 @@ steps:
           - tag
 ---
 kind: signature
-hmac: 3e3907cbefcf8706faea6678df4a326631e885d901564f50315e361cd9479e75
+hmac: 9fb5cc1c1b345cecec28b7ce19a7e405d9c73c67a451e2004d06f08cb98e978a
 
 ...
