@@ -11,6 +11,7 @@ linters:
     - mnd
     - testpackage
     - gocyclo
+    - tagalign
   
   settings:
     cyclop:
