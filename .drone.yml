@@ -41,9 +41,9 @@ steps:
       platforms: 
         - linux/arm64
         - linux/amd64
-      when:
-        event:
-          - tag
+    when:
+      event:
+        - tag
 ---
 kind: signature
 hmac: 9fb5cc1c1b345cecec28b7ce19a7e405d9c73c67a451e2004d06f08cb98e978a
