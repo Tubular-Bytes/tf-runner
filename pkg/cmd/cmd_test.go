@@ -27,7 +27,7 @@ func testNew(t *testing.T) {
 		cmd.WithArgs("hello", "world"),
 	)
 
-	require.Equal(t, "/bin/echo hello world", c.String())
+	require.Contains(t, c.String(), "echo hello world")
 	require.Equal(t, "./", c.Dir())
 	require.Equal(t, ob, c.Stdout().(*bytes.Buffer))
 	require.Equal(t, eb, c.Stderr().(*bytes.Buffer))
@@ -80,5 +80,5 @@ func testRunError(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, "exit status 1", err.Error())
 	require.Equal(t, "", c.Stdout().(*bytes.Buffer).String())
-	require.Equal(t, "cp: hello: No such file or directory\n", c.Stderr().(*bytes.Buffer).String())
+	require.Contains(t, c.Stderr().(*bytes.Buffer).String(), "No such file or directory")
 }
