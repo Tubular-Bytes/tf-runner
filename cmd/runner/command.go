@@ -27,7 +27,11 @@ type VersionCmd struct{}
 
 func (v *VersionCmd) Run() error {
 	initLogger()
-	slog.Info("version information", "commit_hash", version.CommitHash, "version", version.Version, "build_date", version.BuildTime)
+	slog.Info("version information",
+		"commit_hash", version.CommitHash,
+		"version", version.Version,
+		"build_date", version.BuildTime,
+	)
 
 	return nil
 }
