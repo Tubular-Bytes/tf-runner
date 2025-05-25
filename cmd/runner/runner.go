@@ -13,7 +13,7 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-func (r *RunCmd) Run(ctx *Context) error {
+func (r *RunCmd) Run() error {
 	logWriter := logexporter.NewLogWriter()
 
 	store, err := logexporter.New(logexporter.ExporterConfig{
