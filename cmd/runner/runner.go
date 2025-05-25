@@ -96,20 +96,25 @@ func mustHaveTofu() error {
 }
 
 func (r *RunCmd) writeOverride() error {
+	overrideFile := r.OverrideFile
+	if overrideFile == "" {
+		overrideFile = "main_override.tf"
+	}
+
 	override, err := tofu.Render(r.StateURL, r.LockURL, r.UnlockURL)
 	if err != nil {
 		return err
 	}
 
-	overrideFile := filepath.Join(r.workingDir(), "main_override.tf")
+	overridePath := filepath.Join(r.workingDir(), overrideFile)
 	slog.Info("writing override file",
-		"file", overrideFile,
+		"file", overridePath,
 		"state_url", r.StateURL,
 		"lock_url", r.LockURL,
 		"unlock_url", r.UnlockURL,
 	)
 
-	if err := os.WriteFile(overrideFile, override, os.ModePerm); err != nil {
+	if err := os.WriteFile(overridePath, override, os.ModePerm); err != nil {
 		return err
 	}
 
