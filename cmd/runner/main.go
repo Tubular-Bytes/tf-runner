@@ -16,8 +16,6 @@ import (
 */
 
 func main() {
-	initLogger()
-
 	ctx := kong.Parse(&CLI,
 		kong.Description("Terrence Runner"),
 		kong.UsageOnError(),

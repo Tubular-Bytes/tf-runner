@@ -2,6 +2,7 @@ package main
 
 import (
 	"log/slog"
+	"os"
 
 	"github.com/Tubular-Bytes/tf-runner/pkg/version"
 )
@@ -27,7 +28,7 @@ type RunCmd struct {
 type VersionCmd struct{}
 
 func (v *VersionCmd) Run() error {
-	initLogger()
+	initLogger(os.Stdout)
 	slog.Info("version information",
 		"commit_hash", version.CommitHash,
 		"version", version.Version,

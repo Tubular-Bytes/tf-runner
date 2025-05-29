@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -15,6 +16,8 @@ import (
 
 func (r *RunCmd) Run() error {
 	logWriter := logexporter.NewLogWriter()
+	output := io.MultiWriter(os.Stdout, logWriter)
+	initLogger(output)
 
 	store, err := logexporter.New(logexporter.ExporterConfig{
 		Endpoint:        r.Endpoint,
@@ -71,8 +74,8 @@ func (r *RunCmd) Run() error {
 	return nil
 }
 
-func initLogger() {
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+func initLogger(w io.Writer) {
+	slog.SetDefault(slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	})))
 }
