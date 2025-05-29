@@ -6,7 +6,7 @@ WORKDIR /build
 COPY . .
 RUN make build
 
-FROM registry.0x42.in/terrence/base:alpine3.21
+FROM registry.0x42.in/terrence/tofu:1.9.1-alpine3.21
 COPY --from=builder /build/bin/runner /usr/bin/runner
 
 ENTRYPOINT ["/usr/bin/runner"]
