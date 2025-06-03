@@ -34,6 +34,7 @@ func (r *RunCmd) Run() error {
 
 	defer func() {
 		store.Flush(logWriter.Data(), true)
+
 		if !r.NoClean {
 			cleanUp()
 		}
