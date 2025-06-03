@@ -13,6 +13,8 @@ var CLI struct {
 }
 
 type RunCmd struct {
+	NoClean bool `name:"no-clean" default:"no" env:"TERRENCE_NO_CLEAN" help:"Do not clean up the workspace after running"` //nolint:lll
+
 	RepoUrl   string `name:"repo"       env:"TERRENCE_REPO"                     help:"Repository URL"`          //nolint:lll
 	Endpoint  string `name:"endpoint"   env:"TERRENCE_ENDPOINT"                 help:"Object store endpoint"`   //nolint:lll
 	AccessKey string `name:"access-key" env:"TERRENCE_ACCESS_KEY"               help:"Object store access key"` //nolint:lll

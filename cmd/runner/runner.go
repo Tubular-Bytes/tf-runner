@@ -34,7 +34,9 @@ func (r *RunCmd) Run() error {
 
 	defer func() {
 		store.Flush(logWriter.Data(), true)
-		cleanUp()
+		if !r.NoClean {
+			cleanUp()
+		}
 	}()
 
 	if err := mustHaveTofu(); err != nil {
