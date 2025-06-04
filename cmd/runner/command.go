@@ -14,6 +14,7 @@ var CLI struct {
 
 type RunCmd struct {
 	NoClean bool `name:"no-clean" default:"no" env:"TERRENCE_NO_CLEAN" help:"Do not clean up the workspace after running"` //nolint:lll
+	Debug   bool `name:"debug" default:"no" env:"TERRENCE_DEBUG" help:"Enable debug logging"`                              //nolint:lll
 
 	RepoUrl   string `name:"repo"       env:"TERRENCE_REPO"                     help:"Repository URL"`          //nolint:lll
 	Endpoint  string `name:"endpoint"   env:"TERRENCE_ENDPOINT"                 help:"Object store endpoint"`   //nolint:lll
@@ -30,7 +31,7 @@ type RunCmd struct {
 type VersionCmd struct{}
 
 func (v *VersionCmd) Run() error {
-	initLogger(os.Stdout)
+	initLogger(os.Stdout, false)
 	slog.Info("version information",
 		"commit_hash", version.CommitHash,
 		"version", version.Version,

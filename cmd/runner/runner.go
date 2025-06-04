@@ -17,7 +17,12 @@ import (
 func (r *RunCmd) Run() error {
 	logWriter := logexporter.NewLogWriter()
 	output := io.MultiWriter(os.Stdout, logWriter)
-	initLogger(output)
+
+	if r.Debug {
+		os.Setenv("TF_LOG", "DEBUG")
+	}
+
+	initLogger(output, r.Debug)
 
 	store, err := logexporter.New(logexporter.ExporterConfig{
 		Endpoint:        r.Endpoint,
@@ -77,9 +82,13 @@ func (r *RunCmd) Run() error {
 	return nil
 }
 
-func initLogger(w io.Writer) {
+func initLogger(w io.Writer, debug bool) {
+	level := slog.LevelInfo
+	if debug {
+		level = slog.LevelDebug
+	}
 	slog.SetDefault(slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		Level: level,
 	})))
 }
 
