@@ -14,7 +14,7 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-func (r *RunCmd) Run() error {
+func (r *RunCmd) Run() error { //nolint:funlen
 	logWriter := logexporter.NewLogWriter()
 	output := io.MultiWriter(os.Stdout, logWriter)
 
@@ -87,6 +87,7 @@ func initLogger(w io.Writer, debug bool) {
 	if debug {
 		level = slog.LevelDebug
 	}
+
 	slog.SetDefault(slog.New(slog.NewTextHandler(w, &slog.HandlerOptions{
 		Level: level,
 	})))
