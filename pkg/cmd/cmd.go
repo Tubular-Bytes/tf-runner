@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log/slog"
 	"os/exec"
 )
 
@@ -105,6 +106,8 @@ func (c *Command) Run() error {
 	if c.command == nil {
 		return ErrNilCommand
 	}
+
+	slog.Debug("running command", "command", c.command.String(), "dir", c.command.Dir, "env", c.command.Env)
 
 	return c.command.Run()
 }

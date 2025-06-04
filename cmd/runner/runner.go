@@ -9,35 +9,37 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Tubular-Bytes/tf-runner/pkg/logexporter"
 	"github.com/Tubular-Bytes/tf-runner/pkg/tofu"
 	"github.com/go-git/go-git/v5"
 )
 
 func (r *RunCmd) Run() error { //nolint:funlen
-	logWriter := logexporter.NewLogWriter()
-	output := io.MultiWriter(os.Stdout, logWriter)
+	// logWriter := logexporter.NewLogWriter()
+	// output := io.MultiWriter(os.Stdout, logWriter)
+	output := os.Stdout
 
 	tofu.SetDebug(r.Debug)
 
 	initLogger(output, r.Debug)
 
-	store, err := logexporter.New(logexporter.ExporterConfig{
-		Endpoint:        r.Endpoint,
-		AccessKeyID:     r.AccessKey,
-		SecretAccessKey: r.SecretKey,
-		UseSSL:          true,
-		Repository:      r.repoName(),
-	})
-	if err != nil {
-		slog.Error("failed to create log exporter", "error", err)
+	slog.Info("is debug mode on?", "debug", r.Debug)
 
-		return err
-	}
+	// store, err := logexporter.New(logexporter.ExporterConfig{
+	// 	Endpoint:        r.Endpoint,
+	// 	AccessKeyID:     r.AccessKey,
+	// 	SecretAccessKey: r.SecretKey,
+	// 	UseSSL:          true,
+	// 	Repository:      r.repoName(),
+	// })
+	// if err != nil {
+	// 	slog.Error("failed to create log exporter", "error", err)
+
+	// 	return err
+	// }
 
 	defer func() {
-		slog.Info("flushing logs to store", "endpoint", r.Endpoint)
-		store.Flush(logWriter.Data(), true)
+		// slog.Info("flushing logs to store", "endpoint", r.Endpoint)
+		// store.Flush(logWriter.Data(), true)
 
 		if !r.NoClean {
 			cleanUp()

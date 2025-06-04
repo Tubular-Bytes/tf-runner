@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
 	"slices"
 	"time"
@@ -52,7 +51,6 @@ func New(config ExporterConfig) (*Exporter, error) {
 
 type LogWriter struct {
 	data   []map[string]any
-	output io.Writer
 	pretty bool
 }
 
