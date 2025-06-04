@@ -13,7 +13,7 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-func (r *RunCmd) Run() error { //nolint:funlen
+func (r *RunCmd) Run() error {
 	// logWriter := logexporter.NewLogWriter()
 	// output := io.MultiWriter(os.Stdout, logWriter)
 	output := os.Stdout
@@ -40,7 +40,6 @@ func (r *RunCmd) Run() error { //nolint:funlen
 	defer func() {
 		// slog.Info("flushing logs to store", "endpoint", r.Endpoint)
 		// store.Flush(logWriter.Data(), true)
-
 		if !r.NoClean {
 			cleanUp()
 		}
