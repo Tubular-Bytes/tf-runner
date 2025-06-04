@@ -36,6 +36,7 @@ func (r *RunCmd) Run() error { //nolint:funlen
 	}
 
 	defer func() {
+		slog.Info("flushing logs to store", "endpoint", r.Endpoint)
 		store.Flush(logWriter.Data(), true)
 
 		if !r.NoClean {
@@ -71,7 +72,7 @@ func (r *RunCmd) Run() error { //nolint:funlen
 		return err
 	}
 
-	if err := r.pipeline(logWriter); err != nil {
+	if err := r.pipeline(output); err != nil {
 		slog.Error("pipeline failed", "error", err)
 
 		return err
@@ -145,21 +146,21 @@ func (r *RunCmd) workingDir() string {
 	return filepath.Join("workspace", r.repoName())
 }
 
-func (r *RunCmd) pipeline(logWriter *logexporter.LogWriter) error {
-	if err := tofu.Init(r.workingDir(), logWriter); err != nil {
+func (r *RunCmd) pipeline(output io.Writer) error {
+	if err := tofu.Init(r.workingDir(), output); err != nil {
 		slog.Error("init failed", "error", err)
 
 		return err
 	}
 
-	if err := tofu.Plan(r.workingDir(), logWriter); err != nil {
+	if err := tofu.Plan(r.workingDir(), output); err != nil {
 		slog.Error("plan failed", "error", err)
 
 		return err
 	}
 
 	if r.Apply {
-		if err := tofu.Apply(r.workingDir(), logWriter); err != nil {
+		if err := tofu.Apply(r.workingDir(), output); err != nil {
 			slog.Error("plan failed", "error", err)
 
 			return err
