@@ -16,6 +16,7 @@ func tofu(workingDir string, stdout io.Writer, stderr io.Writer) *cmd.Command {
 		cmd.WithDir(workingDir),
 		cmd.WithStdout(stdout),
 		cmd.WithStderr(stderr),
+		cmd.WithDebug(Debug()),
 	)
 }
 

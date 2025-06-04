@@ -64,6 +64,16 @@ func (c *Command) String() string {
 	return c.command.String()
 }
 
+func (c *Command) SetDebug(debug bool) {
+	if c.command == nil {
+		return
+	}
+
+	if debug {
+		c.command.Env = append(c.command.Env, "TF_LOG=DEBUG")
+	}
+}
+
 func (c *Command) SetArgs(args ...string) {
 	if c.command != nil {
 		c.command.Args = append(c.command.Args, args...)

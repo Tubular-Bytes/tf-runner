@@ -29,3 +29,11 @@ func WithArgs(args ...string) Option {
 		}
 	}
 }
+
+func WithDebug(debug bool) Option {
+	return func(c *Command) {
+		if c.command != nil {
+			c.SetDebug(debug)
+		}
+	}
+}

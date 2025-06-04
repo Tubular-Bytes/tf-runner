@@ -17,10 +17,7 @@ import (
 func (r *RunCmd) Run() error { //nolint:funlen
 	logWriter := logexporter.NewLogWriter()
 	output := io.MultiWriter(os.Stdout, logWriter)
-
-	if r.Debug {
-		os.Setenv("TF_LOG", "DEBUG")
-	}
+	tofu.SetDebug(r.Debug)
 
 	initLogger(output, r.Debug)
 
