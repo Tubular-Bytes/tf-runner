@@ -9,3 +9,7 @@ release:
 	git tag $(shell svu)
 	git push
 	git push --tags
+
+clean:
+	rm -rf bin
+	rm -rf workspace

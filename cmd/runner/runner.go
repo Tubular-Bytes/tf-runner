@@ -9,37 +9,51 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Tubular-Bytes/tf-runner/pkg/logexporter"
 	"github.com/Tubular-Bytes/tf-runner/pkg/tofu"
 	"github.com/go-git/go-git/v5"
 )
 
-func (r *RunCmd) Run() error {
-	// logWriter := logexporter.NewLogWriter()
-	// output := io.MultiWriter(os.Stdout, logWriter)
-	output := os.Stdout
+func (r *RunCmd) Run() error { //nolint:funlen
+	logFp, err := os.Create("run.log")
+	if err != nil {
+		slog.Error("failed to create log file", "error", err)
+
+		return err
+	}
+
+	output := io.MultiWriter(os.Stdout, logFp)
 
 	tofu.SetDebug(r.Debug)
 
 	initLogger(output, r.Debug)
 
-	slog.Info("is debug mode on?", "debug", r.Debug)
+	store, err := logexporter.New(logexporter.ExporterConfig{
+		Endpoint:        r.Endpoint,
+		AccessKeyID:     r.AccessKey,
+		SecretAccessKey: r.SecretKey,
+		UseSSL:          true,
+		Repository:      r.repoName(),
+	})
+	if err != nil {
+		logFp.Close()
+		slog.Error("failed to create log exporter", "error", err)
 
-	// store, err := logexporter.New(logexporter.ExporterConfig{
-	// 	Endpoint:        r.Endpoint,
-	// 	AccessKeyID:     r.AccessKey,
-	// 	SecretAccessKey: r.SecretKey,
-	// 	UseSSL:          true,
-	// 	Repository:      r.repoName(),
-	// })
-	// if err != nil {
-	// 	slog.Error("failed to create log exporter", "error", err)
-
-	// 	return err
-	// }
+		return err
+	}
 
 	defer func() {
-		// slog.Info("flushing logs to store", "endpoint", r.Endpoint)
-		// store.Flush(logWriter.Data(), true)
+		logFp.Close()
+
+		log, err := os.ReadFile("run.log")
+		if err != nil {
+			slog.Error("failed to read log file", "error", err)
+		} else {
+			if err := store.Flush(log, true); err != nil {
+				slog.Error("failed to flush log", "error", err)
+			}
+		}
+
 		if !r.NoClean {
 			cleanUp()
 		}

@@ -109,5 +109,7 @@ func (c *Command) Run() error {
 
 	slog.Debug("running command", "command", c.command.String(), "dir", c.command.Dir, "env", c.command.Env)
 
-	return c.command.Run()
+	err := c.command.Run()
+
+	return err
 }

@@ -23,7 +23,7 @@ func tofu(workingDir string, stdout io.Writer, stderr io.Writer) *cmd.Command {
 func Init(workingDir string, output io.Writer) error {
 	slog.Info("initializing workspace", "dir", workingDir)
 	init := tofu(workingDir, output, output)
-	init.SetArgs("init", "-json", "-no-color", "-input=false")
+	init.SetArgs("init", "-no-color", "-input=false")
 
 	return init.Run()
 }
@@ -31,7 +31,7 @@ func Init(workingDir string, output io.Writer) error {
 func Plan(workingDir string, output io.Writer) error {
 	slog.Info("creating plan", "dir", workingDir, "output", planOutput)
 	plan := tofu(workingDir, output, output)
-	plan.SetArgs("plan", "-json", "-no-color", "-input=false", "-out="+planOutput)
+	plan.SetArgs("plan", "-no-color", "-input=false", "-out="+planOutput)
 
 	return plan.Run()
 }
@@ -39,7 +39,7 @@ func Plan(workingDir string, output io.Writer) error {
 func Apply(workingDir string, output io.Writer) error {
 	slog.Info("applying plan", "dir", workingDir)
 	apply := tofu(workingDir, output, output)
-	apply.SetArgs("apply", "-json", "-no-color", "-input=false", planOutput)
+	apply.SetArgs("apply", "-no-color", "-input=false", planOutput)
 
 	return apply.Run()
 }

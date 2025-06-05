@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"slices"
 	"time"
 
+	"github.com/Tubular-Bytes/tf-runner/pkg/logexporter/parser"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -50,77 +50,107 @@ func New(config ExporterConfig) (*Exporter, error) {
 }
 
 type LogWriter struct {
-	data   []map[string]any
-	pretty bool
+	data [][]byte
 }
 
 func NewLogWriter() *LogWriter {
 	return &LogWriter{
-		data: make([]map[string]any, 0),
+		data: make([][]byte, 0),
 	}
 }
 
-func (w *LogWriter) Data() []map[string]any {
+func (w *LogWriter) Data() [][]byte {
 	return w.data
 }
 
 func (w *LogWriter) Write(p []byte) (n int, err error) {
-	data := make(map[string]any)
-	if err := json.Unmarshal(p, &data); err != nil {
-		return 0, err
+	if w.data == nil {
+		w.data = make([][]byte, 0)
 	}
 
-	w.data = append(w.data, data)
-
-	slices.SortFunc(w.data, func(a, b map[string]any) int {
-		if a["@timestamp"] == nil || b["@timestamp"] == nil {
-			return 0
-		}
-
-		aTime, okA := a["@timestamp"].(string)
-		bTime, okB := b["@timestamp"].(string)
-
-		if !okA || !okB {
-			return 0
-		}
-
-		if aTime < bTime {
-			return -1
-		} else if aTime > bTime {
-			return 1
-		}
-
-		return 0
-	})
+	w.data = append(w.data, p)
 
 	return len(p), nil
 }
 
-func (w *Exporter) Flush(logs []map[string]any, pretty bool) error {
-	b := bytes.NewBufferString("")
+type SlogWriter struct {
+	data []*parser.Entry
+}
 
-	encoder := json.NewEncoder(b)
-	if pretty {
-		encoder.SetIndent("", "  ")
+func (w *Exporter) Flush(logs []byte, pretty bool) error {
+	key := fmt.Sprintf("%s/%s.json", w.repository, w.start.Format("20060102150405"))
+	slog.Info("flushing logs to store", "endpoint", w.client.EndpointURL(), "bucket", bucket, "object", key)
+
+	buf := bytes.NewBufferString("")
+
+	lines := bytes.Split(logs, []byte("\n"))
+	entries := make([]*parser.Entry, 0)
+
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue // Skip empty lines
+		}
+
+		entry, err := parseLine(line)
+		if err != nil {
+			slog.Warn("failed to parse log line", "line", string(line), "error", err)
+
+			continue // Skip lines that cannot be parsed
+		}
+
+		if entry != nil {
+			entries = append(entries, entry)
+		}
 	}
 
-	raw := map[string]any{
-		"timestamp":  w.start.Format(time.RFC3339),
-		"repository": w.repository,
-		"logs":       logs,
-	}
+	raw, err := json.Marshal(entries)
+	if err != nil {
+		slog.Error("failed to marshal log entries", "error", err)
 
-	if err := encoder.Encode(raw); err != nil {
 		return err
 	}
 
-	key := fmt.Sprintf("%s/%s.json", w.repository, w.start.Format("20060102150405"))
-	slog.Debug("writing logs to object store", "key", key, "size", b.Len())
+	buf = bytes.NewBuffer(raw)
 
-	_, err := w.client.PutObject(context.Background(), bucket, key, b, int64(b.Len()), minio.PutObjectOptions{})
-	if err != nil {
+	slog.Debug("writing logs to object store", "key", key, "size", buf.Len())
+
+	if _, err := w.client.PutObject(
+		context.Background(),
+		bucket,
+		key,
+		buf,
+		int64(buf.Len()),
+		minio.PutObjectOptions{
+			ContentType:     "application/json",
+			RetainUntilDate: time.Now().Add(30 * 24 * time.Hour), // Retain for 30 days
+			Mode:            minio.Compliance,
+			LegalHold:       minio.LegalHoldEnabled,
+		}); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func parseLine(line []byte) (*parser.Entry, error) {
+	parsers := []func([]byte) (*parser.Entry, error){
+		parser.ParseTofu,
+		parser.ParseSlog,
+		parser.FallbackParser, // Fallback parser if no other parsers match
+	}
+
+	for _, parser := range parsers {
+		entry, err := parser(line)
+		if err != nil {
+			slog.Error("failed to parse log line", "line", string(line), "error", err)
+
+			continue // Try the next parser
+		}
+
+		if entry != nil {
+			return entry, nil // Return the first successfully parsed entry
+		}
+	}
+
+	return nil, fmt.Errorf("failed to parse line: %s", string(line))
 }
