@@ -5,6 +5,7 @@ go 1.24.3
 require (
 	github.com/alecthomas/kong v1.11.0
 	github.com/go-git/go-git/v5 v5.16.0
+	github.com/kr/logfmt v0.0.0-20210122060352-19f9bcb100e6
 	github.com/minio/minio-go/v7 v7.0.92
 	github.com/stretchr/testify v1.10.0
 )

@@ -15,12 +15,16 @@ import (
 )
 
 func (r *RunCmd) Run() error { //nolint:funlen
-	logWriter := logexporter.NewLogWriter()
-	output := io.MultiWriter(os.Stdout, logWriter)
+	logFp, err := os.Create("run.log")
+	if err != nil {
+		slog.Error("failed to create log file", "error", err)
 
-	if r.Debug {
-		os.Setenv("TF_LOG", "DEBUG")
+		return err
 	}
+
+	output := io.MultiWriter(os.Stdout, logFp)
+
+	tofu.SetDebug(r.Debug)
 
 	initLogger(output, r.Debug)
 
@@ -32,13 +36,23 @@ func (r *RunCmd) Run() error { //nolint:funlen
 		Repository:      r.repoName(),
 	})
 	if err != nil {
+		logFp.Close()
 		slog.Error("failed to create log exporter", "error", err)
 
 		return err
 	}
 
 	defer func() {
-		store.Flush(logWriter.Data(), true)
+		logFp.Close()
+
+		log, err := os.ReadFile("run.log")
+		if err != nil {
+			slog.Error("failed to read log file", "error", err)
+		} else {
+			if err := store.Flush(log, true); err != nil {
+				slog.Error("failed to flush log", "error", err)
+			}
+		}
 
 		if !r.NoClean {
 			cleanUp()
@@ -73,7 +87,7 @@ func (r *RunCmd) Run() error { //nolint:funlen
 		return err
 	}
 
-	if err := r.pipeline(logWriter); err != nil {
+	if err := r.pipeline(output); err != nil {
 		slog.Error("pipeline failed", "error", err)
 
 		return err
@@ -147,21 +161,21 @@ func (r *RunCmd) workingDir() string {
 	return filepath.Join("workspace", r.repoName())
 }
 
-func (r *RunCmd) pipeline(logWriter *logexporter.LogWriter) error {
-	if err := tofu.Init(r.workingDir(), logWriter); err != nil {
+func (r *RunCmd) pipeline(output io.Writer) error {
+	if err := tofu.Init(r.workingDir(), output); err != nil {
 		slog.Error("init failed", "error", err)
 
 		return err
 	}
 
-	if err := tofu.Plan(r.workingDir(), logWriter); err != nil {
+	if err := tofu.Plan(r.workingDir(), output); err != nil {
 		slog.Error("plan failed", "error", err)
 
 		return err
 	}
 
 	if r.Apply {
-		if err := tofu.Apply(r.workingDir(), logWriter); err != nil {
+		if err := tofu.Apply(r.workingDir(), output); err != nil {
 			slog.Error("plan failed", "error", err)
 
 			return err
